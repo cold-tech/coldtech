@@ -1,0 +1,110 @@
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo img {
+  height: 32px;
+  margin-right: 10px;
+}
+
+.logo-text {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e40af;
+  letter-spacing: -0.5px;
+}
+
+.navbar-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 24px;
+}
+
+.navbar-links li a {
+  color: #4b5563;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 16px;
+  transition: color 0.2s;
+  padding: 8px 0;
+  position: relative;
+}
+
+.navbar-links li a:hover {
+  color: #1e40af;
+}
+
+.navbar-links li a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #1e40af;
+  transition: width 0.3s;
+}
+
+.navbar-links li a:hover::after {
+  width: 100%;
+}
+
+.agenda-btn {
+  background-color: #1e40af;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 6px;
+  transition: background-color 0.2s !important;
+}
+
+.agenda-btn:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.agenda-btn::after {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .navbar-content {
+    flex-direction: column;
+    padding: 16px;
+  }
+  
+  .logo {
+    margin-bottom: 16px;
+  }
+  
+  .navbar-links {
+    width: 100%;
+    justify-content: space-around;
+    gap: 12px;
+  }
+  
+  .navbar-links li a {
+    font-size: 14px;
+  }
+}
