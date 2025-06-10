@@ -1,19 +1,35 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import './Navbar.css';
+import { Link, useLocation } from 'react-router-dom';
 
 function Navbar() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  const handleAnchorClick = (e, target) => {
+    e.preventDefault();
+    window.location.href = '/' + target;
+  };
+
   return (
     <nav className="navbar">
       <div className="container navbar-content">
-        <a href="#main-content" className="logo">
+        <Link to="/" className="logo">
           <img src="../src/assets/logo.svg" alt="ColdTech Logo" />
           <span className="logo-text">ColdTech</span>
-        </a>
+        </Link>
         <ul className="navbar-links">
-          <li><a href="#servicos">Serviços</a></li>
-          <li><a href="#cta">Contato</a></li>
-          <li><Link to="/agenda" className="agenda-btn">Agenda</Link></li>
+          {isHomePage ? (
+            <>
+              <li><a href="#servicos">Serviços</a></li>
+              <li><a href="#cta">Contato</a></li>
+            </>
+          ) : (
+            <>
+              <li><a href="#" onClick={(e) => handleAnchorClick(e, '#servicos')}>Serviços</a></li>
+              <li><a href="#" onClick={(e) => handleAnchorClick(e, '#cta')}>Contato</a></li>
+              <li><Link to="/agenda">Agenda</Link></li>
+            </>
+          )}
         </ul>
       </div>
     </nav>
