@@ -1,17 +1,17 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Table from '../components/Table';
+import React from "react";
+import Navbar from "../components/Navbar";
+import Table from "../components/Table";
+import Footer from "../components/Footer";
+import "./Agenda.css";
 
-const Agenda = () => {
-    return ( 
-    <>
-        <Navbar />
-        <div className="bg-gray-100 py-10 min-h-screen">
-            <Table />
-        </div>
-        <Footer />
-    </> 
-    );
+export default function Agenda() {
+  return (
+    <div className="agenda-page">
+      <Navbar />
+      <div className="agenda-content">
+        <Table />
+      </div>
+      <Footer />
+    </div>
+  );
 }
- 
-export default Agenda;
