@@ -1,11 +1,14 @@
-import React from 'react'
-import AppRoutes from './routes'
-import './App.css'
+import React from 'react';
+import AppRoutes from './routes';
+import { AuthProvider } from './contexts/AuthContext.jsx';
+import './App.css';
 
 function App() {
   return (
-    <AppRoutes />
-  )
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

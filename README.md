@@ -1,104 +1,98 @@
+# ColdTech - Sistema de Gerenciamento de Manutenção de Ar Condicionado
 
-# ColdTech - Documentação
+## Visão Geral
 
-## 📌 Descrição do Projeto
+ColdTech é um sistema web para gerenciamento de serviços de manutenção de ar condicionado. A plataforma permite o agendamento de serviços, gerenciamento de clientes e acompanhamento de manutenções.
 
-O **ColdTech** é um aplicativo de landing page desenvolvido para oferecer serviços de assistência técnica especializada em ar-condicionado, incluindo instalação, manutenção e projetos personalizados. O objetivo é fornecer uma interface moderna, responsiva e intuitiva para atrair clientes e facilitar o contato com a equipe técnica.
+## Funcionalidades
 
----
+- **Site Institucional**: Apresentação da empresa e serviços
+- **Agendamento de Serviços**: Interface para clientes agendarem manutenções
+- **Painel Administrativo**: Gerenciamento completo do sistema
+  - Dashboard com indicadores de desempenho
+  - Gerenciamento de agendamentos
+  - Cadastro e acompanhamento de clientes
+  - Configurações do sistema
 
-## ⚙️ Funcionalidades
+## Tecnologias Utilizadas
 
-### ✅ Navbar Responsiva
-- Links para **Serviços** e **Contato**
-- Logotipo da empresa com texto estilizado
+- React.js
+- React Router
+- Tailwind CSS
+- Armazenamento local (localStorage)
 
-### ✅ Seção Hero
-- Destaque inicial com título, subtítulo e botão de chamada para ação
+## Estrutura do Projeto
 
-### ✅ Seção de Serviços
-- Apresenta os serviços oferecidos em layout de grade responsivo
-- Cada serviço exibe um **ícone**, **título** e **descrição**
+```
+coldtech/
+├── src/
+│   ├── assets/           # Recursos estáticos (imagens, etc)
+│   ├── components/       # Componentes reutilizáveis
+│   ├── contexts/         # Contextos React (AuthContext)
+│   ├── data/             # Dados mockados (agendamentos.json)
+│   ├── pages/            # Páginas da aplicação
+│   │   ├── Admin/        # Componentes do painel administrativo
+│   │   └── Agenda.jsx    # Página de agendamento
+│   ├── routes/           # Configuração de rotas
+│   ├── App.jsx           # Componente principal
+│   └── main.jsx          # Ponto de entrada
+└── public/               # Arquivos públicos
+```
 
-### ✅ Seção CTA (Call to Action)
-- Incentivo para solicitar atendimento com botão destacado
-- Imagem ilustrativa
+## Instalação e Execução
 
-### ✅ Modal de Contato
-- Formulário com **nome**, **e-mail**, **telefone** e **mensagem**
-- Botão para fechar o modal
-
-### ✅ Footer
-- Direitos autorais
-- Links para **Termos de Uso** e **Política de Privacidade**
-
----
-
-## 🛠 Tecnologias Utilizadas
-
-- **React** – Biblioteca JavaScript para construção da interface
-- **Tailwind CSS** – Framework CSS utilitário para estilização
-- **HTML5 e CSS3** – Estrutura básica e estilos adicionais
-- **JavaScript (ES6+)** – Lógica do aplicativo
-
----
-
-## 🚀 Instalação
-
-1. **Clone o Repositório**
-   ```bash
-   git clone https://github.com/joao-paulo-paiva/landing-page-app.git
+1. Clone o repositório
+2. Instale as dependências:
    ```
-
-2. **Instale as Dependências**
-   ```bash
    npm install
    ```
-
-3. **Inicie o Servidor de Desenvolvimento**
-   ```bash
+3. Execute o projeto:
+   ```
    npm run dev
    ```
 
-4. **Acesse no Navegador**
+## Acesso ao Sistema
 
-   O aplicativo estará disponível em: [http://localhost:3000](http://localhost:3000)
+- **URL do site**: http://localhost:5174/
+- **URL do agendamento**: http://localhost:5174/agenda
+- **URL do painel admin**: http://localhost:5174/admin
+- **URL de login**: http://localhost:5174/login
+
+## Credenciais de Acesso
+
+Para acessar o painel administrativo:
+- **Email**: admin@coldtech.com
+- **Senha**: admin123
+
+## Principais Componentes
+
+### Site Institucional
+- **HomePage**: Página inicial com apresentação da empresa
+- **Navbar**: Barra de navegação principal
+- **HeroSection**: Seção de destaque com chamada para ação
+- **ServicesSection**: Apresentação dos serviços oferecidos
+- **CTASection**: Chamada para ação (Call to Action)
+- **Footer**: Rodapé com informações de contato
+
+### Sistema de Agendamento
+- **Agenda**: Página para visualização e criação de agendamentos
+- **Table**: Componente de tabela para exibição dos agendamentos
+
+### Painel Administrativo
+- **Dashboard**: Layout principal do painel administrativo
+- **DashboardHome**: Página inicial com indicadores e estatísticas
+- **AgendamentosAdmin**: Gerenciamento de agendamentos
+- **ClientesAdmin**: Gerenciamento de clientes
+- **Navbar/Sidebar**: Navegação do painel administrativo
+
+## Autenticação
+
+O sistema utiliza um contexto de autenticação (AuthContext) para gerenciar o estado de login do usuário. Os dados são armazenados no localStorage para persistência entre sessões.
+
+## Rotas Protegidas
+
+O componente PrivateRoute garante que apenas usuários autenticados possam acessar o painel administrativo.
 
 ---
 
-## 📁 Estrutura do Projeto
-
-*(Você pode incluir aqui um diagrama de pastas ou uma breve descrição dos principais arquivos se desejar)*
-
----
-
-## 🔄 Próxima Melhoria
-
-- **Adicionar Área de Administração**
-  - Criar área protegida por autenticação
-  - Gerenciar serviços, mensagens e informações do site
-
-- **Migrar Estilos do App.css para Tailwind CSS**
-  - Substituir os estilos por classes utilitárias do Tailwind
-  - Manter o design consistente e responsivo
-
----
-
-## 🤝 Como Contribuir
-
-1. Faça um **fork** do repositório
-2. Crie uma **branch** para sua funcionalidade:
-   ```bash
-   git checkout -b minha-feature
-   ```
-3. Faça as alterações e **commit**:
-   ```bash
-   git commit -m "Minha contribuição"
-   ```
-4. Envie para o repositório remoto:
-   ```bash
-   git push origin minha-feature
-   ```
-5. Abra um **Pull Request**
-
----
+Desenvolvido como projeto demonstrativo para a ColdTech Manutenção de Ar Condicionado.
