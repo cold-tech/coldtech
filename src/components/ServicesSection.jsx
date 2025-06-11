@@ -14,7 +14,12 @@ function ServicesSection() {
     <section id="servicos" className="servicos-section">
       <div className="container">
         <h2>Nossos Serviços</h2>
-        <div className="servicos-grid">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(3, 1fr)',
+          gap: '20px'
+        }}>
           {services.map((service, index) => (
             <div key={index} className="servico-item">
               <span className="icon">{service.icon}</span>
