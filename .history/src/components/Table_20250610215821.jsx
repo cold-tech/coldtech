@@ -20,7 +20,7 @@ const initialCompanies = [
     status: "pendente",
   },
   {
-    cliente: "João Paulo",
+    cliente: "AnaJ",
     servico: "Manutenção",
     data: "2001-09-11",
     time: "19:20",
