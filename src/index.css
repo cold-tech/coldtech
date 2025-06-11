@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos personalizados para seções */
+.servicos-section {
+  margin-bottom: -150px;
+  padding-bottom: 0;
+}
+
+.cta-section {
+  margin-top: -150px;
+  padding-top: 0;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

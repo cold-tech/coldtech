@@ -10,9 +10,13 @@ function HomePage() {
     <div className="home-page">
       <Navbar />
       <HeroSection />
-      <ServicesSection />
+      <div style={{marginBottom: '-200px'}}>
+        <ServicesSection />
+      </div>
       <CTASection />
-      <Footer />
+      <div style={{marginTop: '50px'}}>
+        <Footer />
+      </div>
     </div>
   );
 }
