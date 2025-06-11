@@ -96,3 +96,34 @@ O componente PrivateRoute garante que apenas usuários autenticados possam acess
 ---
 
 Desenvolvido como projeto demonstrativo para a ColdTech Manutenção de Ar Condicionado.
+
+
+```mermaid
+flowchart TD
+    style E fill:#e06666, color:white
+    style S fill:#3d85c6, color:white
+
+    FE[Frontend - React: coldtech/src] --> MAIN[main.jsx]
+    MAIN --> APP[App.jsx]
+    APP --> R[Routes]
+    R --> PG[Pages]
+    PG --> Agenda[Agenda.jsx]
+    PG --> Admin[Admin/]
+
+    APP --> CTX[Contexts - ex: AuthContext]
+    APP --> C[Components Reutilizáveis]
+    APP --> A[Assets]
+
+    Agenda -->|usa dados| D[Mock Data - data/agendamentos.json]
+    Agenda -->|chama| API[HttpClient - Axios ou fetch]
+
+    API -- JSON Request --> CA[ControllerApi - Backend]
+    CA --> S[Service]
+    S --> V{Validator}
+    V -->|is invalid| E{Exception/Violation}
+    V -->|is valid| RP[Repository]
+    RP -->|ORM| DB[Database]
+
+    CA -- JSON Response --> API
+
+```
