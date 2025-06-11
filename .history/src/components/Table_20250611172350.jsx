@@ -12,7 +12,7 @@ const initialCompanies = [
     status: "enviado",
   },
   {
-    cliente: "Pedro",
+    cliente: "Fablilson",
     servico: "Manutenção",
     data: "2001-09-11",
     time: "19:20",
@@ -20,7 +20,7 @@ const initialCompanies = [
     status: "pendente",
   },
   {
-    cliente: "Ana",
+    cliente: "João Paulo",
     servico: "Manutenção",
     data: "2001-09-11",
     time: "19:20",
