@@ -8,6 +8,7 @@ import PrivateRoute from "./PrivateRoute";
 import DashboardHome from "../pages/Admin/components/DashboardHome";
 import AgendamentosAdmin from "../pages/Admin/components/AgendamentosAdmin";
 import ClientesAdmin from "../pages/Admin/components/ClientesAdmin";
+import NotFoundPage from "../components/NotFoundPage";
 
 const configuracoesStyle = {
   padding: '1rem',
@@ -27,7 +28,6 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/agenda" element={<Agenda />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={
@@ -45,6 +45,8 @@ export default function AppRoutes() {
             </div>
           } />
         </Route>
+        {/* Rota para páginas não encontradas */}
+        <Route path="*" element={<NotFoundPage/>} />
       </Routes>
     </BrowserRouter>
   );
