@@ -30,22 +30,41 @@ export default function Calendar() {
   
   // Carregar agendamentos
   useEffect(() => {
-    // Obter agendamentos do serviço de banco de dados
-    const agendamentosData = databaseService.getAgendamentos();
-    setAgendamentos(agendamentosData);
+    const loadAgendamentos = async () => {
+      try {
+        const agendamentosData = await databaseService.getAgendamentos();
+        setAgendamentos(agendamentosData);
+      } catch (error) {
+        console.error("Erro ao carregar agendamentos:", error);
+      }
+    };
+    
+    loadAgendamentos();
   }, []);
   
   // Atualizar agendamentos do dia quando a data selecionada mudar
   useEffect(() => {
-    if (selectedDate) {
-      const dataFormatada = selectedDate.toISOString().split('T')[0];
-      const agendamentosFiltrados = agendamentos.filter(
-        item => item.data === dataFormatada
-      );
-      setAgendamentosDoDia(agendamentosFiltrados);
-    } else {
-      setAgendamentosDoDia([]);
-    }
+    const loadAgendamentosDoDia = async () => {
+      if (selectedDate) {
+        try {
+          const dataFormatada = selectedDate.toISOString().split('T')[0];
+          const agendamentosFiltrados = await databaseService.getAgendamentosByDate(dataFormatada);
+          setAgendamentosDoDia(agendamentosFiltrados);
+        } catch (error) {
+          console.error("Erro ao carregar agendamentos do dia:", error);
+          // Fallback para filtro local
+          const dataFormatada = selectedDate.toISOString().split('T')[0];
+          const agendamentosFiltrados = agendamentos.filter(
+            item => item.data === dataFormatada
+          );
+          setAgendamentosDoDia(agendamentosFiltrados);
+        }
+      } else {
+        setAgendamentosDoDia([]);
+      }
+    };
+    
+    loadAgendamentosDoDia();
   }, [selectedDate, agendamentos]);
 
   // Funções para navegação do calendário

@@ -1,129 +1,70 @@
-# ColdTech - Sistema de Gerenciamento de Manutenção de Ar Condicionado
+# ColdTech - Sistema de Gerenciamento de Agendamentos
 
-## Visão Geral
+## Sobre o Projeto
 
-ColdTech é um sistema web para gerenciamento de serviços de manutenção de ar condicionado. A plataforma permite o agendamento de serviços, gerenciamento de clientes e acompanhamento de manutenções.
-
-## Funcionalidades
-
-- **Site Institucional**: Apresentação da empresa e serviços
-- **Agendamento de Serviços**: Interface para clientes agendarem manutenções
-- **Painel Administrativo**: Gerenciamento completo do sistema
-  - Dashboard com indicadores de desempenho
-  - Gerenciamento de agendamentos
-  - Cadastro e acompanhamento de clientes
-  - Configurações do sistema
+Sistema de gerenciamento de agendamentos para serviços de manutenção, instalação e outros serviços relacionados a refrigeração.
 
 ## Tecnologias Utilizadas
 
-- React.js
-- React Router
-- Tailwind CSS
-- Armazenamento local (localStorage)
+- React
+- Vite
+- Supabase (Banco de dados)
+- Vercel (Deploy)
 
-## Estrutura do Projeto
+## Configuração do Projeto
 
-```
-coldtech/
-├── src/
-│   ├── assets/           # Recursos estáticos (imagens, etc)
-│   ├── components/       # Componentes reutilizáveis
-│   ├── contexts/         # Contextos React (AuthContext)
-│   ├── data/             # Dados mockados (agendamentos.json)
-│   ├── pages/            # Páginas da aplicação
-│   │   ├── Admin/        # Componentes do painel administrativo
-│   │   └── Agenda.jsx    # Página de agendamento
-│   ├── routes/           # Configuração de rotas
-│   ├── App.jsx           # Componente principal
-│   └── main.jsx          # Ponto de entrada
-└── public/               # Arquivos públicos
-```
+### Pré-requisitos
 
-## Instalação e Execução
+- Node.js
+- npm ou yarn
+
+### Instalação
 
 1. Clone o repositório
 2. Instale as dependências:
    ```
    npm install
    ```
-3. Execute o projeto:
+3. Configure as variáveis de ambiente:
+   - Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
    ```
-   npm run dev
+   REACT_APP_SUPABASE_URL=sua_url_do_supabase
+   REACT_APP_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
    ```
 
-## Acesso ao Sistema
+### Configuração do Banco de Dados
 
-- **URL do site**: http://localhost:5174/
-- **URL do agendamento**: http://localhost:5174/agenda
-- **URL do painel admin**: http://localhost:5174/admin
-- **URL de login**: http://localhost:5174/login
+1. Crie um projeto no Supabase
+2. Execute o script SQL localizado em `supabase/schema.sql` no editor SQL do Supabase
 
-## Credenciais de Acesso
+### Desenvolvimento
 
-Para acessar o painel administrativo:
-- **Email**: admin@coldtech.com
-- **Senha**: admin123
-
-## Principais Componentes
-
-### Site Institucional
-- **HomePage**: Página inicial com apresentação da empresa
-- **Navbar**: Barra de navegação principal
-- **HeroSection**: Seção de destaque com chamada para ação
-- **ServicesSection**: Apresentação dos serviços oferecidos
-- **CTASection**: Chamada para ação (Call to Action)
-- **Footer**: Rodapé com informações de contato
-
-### Sistema de Agendamento
-- **Agenda**: Página para visualização e criação de agendamentos
-- **Table**: Componente de tabela para exibição dos agendamentos
-
-### Painel Administrativo
-- **Dashboard**: Layout principal do painel administrativo
-- **DashboardHome**: Página inicial com indicadores e estatísticas
-- **AgendamentosAdmin**: Gerenciamento de agendamentos
-- **ClientesAdmin**: Gerenciamento de clientes
-- **Navbar/Sidebar**: Navegação do painel administrativo
-
-## Autenticação
-
-O sistema utiliza um contexto de autenticação (AuthContext) para gerenciar o estado de login do usuário. Os dados são armazenados no localStorage para persistência entre sessões.
-
-## Rotas Protegidas
-
-O componente PrivateRoute garante que apenas usuários autenticados possam acessar o painel administrativo.
-
----
-
-Desenvolvido como projeto demonstrativo para a ColdTech Manutenção de Ar Condicionado.
-
-
-```mermaid
-flowchart TD
-    style E fill:#e06666, color:white
-    style S fill:#3d85c6, color:white
-
-    FE[Frontend - React: coldtech/src] --> MAIN[main.jsx]
-    MAIN --> APP[App.jsx]
-    APP --> R[Routes]
-    R --> PG[Pages]
-    PG --> Agenda[Agenda.jsx]
-    PG --> Admin[Admin/]
-
-    APP --> CTX[Contexts - ex: AuthContext]
-    APP --> C[Components Reutilizáveis]
-    APP --> A[Assets]
-
-    Agenda -->|usa dados| D[Mock Data - data/agendamentos.json]
-    Agenda -->|chama| API[HttpClient - Axios ou fetch]
-
-    API -- JSON Request --> CA[ControllerApi - Backend]
-    CA --> S[Service]
-    S --> V{Validator}
-    V -->|is invalid| E{Exception/Violation}
-    V -->|is valid| RP[Repository]
-    RP -->|ORM| DB[Database]
-
-    CA -- JSON Response --> API
+Para iniciar o servidor de desenvolvimento:
 
 ```
+npm run dev
+```
+
+### Build
+
+Para criar uma versão de produção:
+
+```
+npm run build
+```
+
+## Deploy na Vercel
+
+1. Conecte seu repositório à Vercel
+2. Configure as variáveis de ambiente no dashboard da Vercel:
+   - REACT_APP_SUPABASE_URL
+   - REACT_APP_SUPABASE_ANON_KEY
+3. Deploy!
+
+## Estrutura do Projeto
+
+- `/src/components` - Componentes reutilizáveis
+- `/src/pages` - Páginas da aplicação
+- `/src/services` - Serviços para comunicação com APIs e banco de dados
+- `/src/data` - Dados estáticos e modelos
+- `/supabase` - Scripts SQL e configurações do Supabase
