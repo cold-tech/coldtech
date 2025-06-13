@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import agendamentosData from '../../../data/agendamentos.json';
+import Calendar from './Calendar';
+import databaseService from '../../../services/databaseService';
 
 // Componentes de ícones simples
 const CalendarIcon = () => (
@@ -50,28 +51,64 @@ export default function DashboardHome() {
   const [proximosAgendamentos, setProximosAgendamentos] = useState([]);
 
   useEffect(() => {
-    // Calcular estatísticas
-    const pendentes = agendamentosData.filter(item => item.status === 'pendente').length;
-    const concluidos = agendamentosData.filter(item => item.status === 'enviado').length;
+    // Obter dados do serviço de banco de dados
+    const agendamentos = databaseService.getAgendamentos();
     
-    // Obter clientes únicos
-    const clientesUnicos = new Set(agendamentosData.map(item => item.cliente)).size;
+    // Obter estatísticas
+    const estatisticas = databaseService.getEstatisticas();
+    setStats(estatisticas);
     
-    setStats({
-      totalAgendamentos: agendamentosData.length,
-      pendentes,
-      concluidos,
-      clientesUnicos
-    });
-    
-    // Ordenar agendamentos por data (assumindo que as datas estão em formato ISO)
+    // Ordenar agendamentos por data
     const hoje = new Date();
-    const proximos = agendamentosData
-      .filter(item => new Date(item.data) >= hoje)
-      .sort((a, b) => new Date(a.data) - new Date(b.data))
-      .slice(0, 5); // Pegar os 5 próximos
+    const dataHoje = hoje.toISOString().split('T')[0];
+    
+    // Adicionar dados de exemplo para o dia atual se não houver
+    if (!agendamentos.some(item => item.data === dataHoje)) {
+      // Criar alguns agendamentos para o dia atual
+      const agendamentosHoje = [
+        {
+          cliente: "Carlos Mendes",
+          contato: "(85) 98765-4321",
+          servico: "manutenção preventiva",
+          data: dataHoje,
+          time: "09:30",
+          local: "Av. Santos Dumont, 1500, Aldeota, Fortaleza",
+          status: "pendente"
+        },
+        {
+          cliente: "Maria Silva",
+          contato: "(85) 99876-5432",
+          servico: "instalação de maquina",
+          data: dataHoje,
+          time: "14:00",
+          local: "Rua Padre Valdevino, 250, Joaquim Távora, Fortaleza",
+          status: "pendente"
+        },
+        {
+          cliente: "Roberto Almeida",
+          contato: "(85) 98888-7777",
+          servico: "manutenção corretiva",
+          data: dataHoje,
+          time: "16:30",
+          local: "Av. Washington Soares, 1400, Edson Queiroz, Fortaleza",
+          status: "pendente"
+        }
+      ];
       
-    setProximosAgendamentos(proximos);
+      // Adicionar ao banco de dados
+      agendamentosHoje.forEach(agendamento => {
+        databaseService.addAgendamento(agendamento);
+      });
+    }
+    
+    // Obter agendamentos do dia atual
+    const agendamentosHoje = databaseService.getAgendamentosByDate(dataHoje);
+    
+    // Ordenar por horário
+    agendamentosHoje.sort((a, b) => a.time.localeCompare(b.time));
+    
+    // Definir os agendamentos do dia
+    setProximosAgendamentos(agendamentosHoje);
   }, []);
 
   function formatDate(dateString) {
@@ -135,10 +172,15 @@ export default function DashboardHome() {
         </div>
       </div>
       
-      {/* Próximos agendamentos */}
+      {/* Agendamentos do dia */}
       <div style={{backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '2rem'}}>
         <div style={{borderBottom: '1px solid #e5e7eb', padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <h2 style={{fontSize: '1.125rem', fontWeight: '600', color: '#333'}}>Próximos Agendamentos</h2>
+          <h2 style={{fontSize: '1.125rem', fontWeight: '600', color: '#333'}}>
+            Agendamentos do Dia
+            <span style={{marginLeft: '0.5rem', fontSize: '0.875rem', fontWeight: 'normal', color: '#6b7280'}}>
+              {new Date().toLocaleDateString('pt-BR', {weekday: 'long', day: 'numeric', month: 'long'})}
+            </span>
+          </h2>
           <Link to="/admin/agendamentos" style={{color: '#3b82f6', fontSize: '0.875rem', textDecoration: 'none'}}>
             Ver todos
           </Link>
@@ -146,15 +188,44 @@ export default function DashboardHome() {
         
         <div style={{padding: '1rem'}}>
           {proximosAgendamentos.length === 0 ? (
-            <p style={{color: '#6b7280', textAlign: 'center', padding: '1rem 0'}}>Nenhum agendamento próximo</p>
+            <div style={{textAlign: 'center', padding: '2rem 0'}}>
+              <div style={{marginBottom: '1rem', color: '#9ca3af'}}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
+              <p style={{color: '#6b7280', fontSize: '0.875rem'}}>Nenhum agendamento para hoje</p>
+              <Link to="/admin/agendamentos" style={{display: 'inline-block', marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', borderRadius: '0.375rem', textDecoration: 'none', fontSize: '0.875rem'}}>
+                Agendar serviço
+              </Link>
+            </div>
           ) : (
             <div style={{overflowX: 'auto'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
+                <p style={{fontSize: '0.875rem', color: '#4b5563'}}>
+                  <strong>{proximosAgendamentos.length}</strong> agendamento(s) para hoje
+                </p>
+                <div style={{display: 'flex', gap: '0.5rem'}}>
+                  <span style={{display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#6b7280'}}>
+                    <span style={{width: '0.75rem', height: '0.75rem', borderRadius: '50%', backgroundColor: '#fef3c7'}}></span>
+                    Pendente
+                  </span>
+                  <span style={{display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#6b7280'}}>
+                    <span style={{width: '0.75rem', height: '0.75rem', borderRadius: '50%', backgroundColor: '#d1fae5'}}></span>
+                    Concluído
+                  </span>
+                </div>
+              </div>
               <table style={{width: '100%', borderCollapse: 'collapse'}}>
                 <thead>
                   <tr style={{backgroundColor: '#f9fafb'}}>
+                    <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Horário</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Cliente</th>
+                    <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Contato</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Serviço</th>
-                    <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Data/Hora</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Local</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Status</th>
                   </tr>
@@ -162,12 +233,26 @@ export default function DashboardHome() {
                 <tbody style={{borderTop: '1px solid #e5e7eb'}}>
                   {proximosAgendamentos.map((item, index) => (
                     <tr key={index} style={{backgroundColor: index % 2 === 0 ? 'white' : '#f9fafb', borderBottom: '1px solid #e5e7eb'}}>
+                      <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#111827'}}>{item.time}</td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '500', color: '#111827'}}>{item.cliente}</td>
+                      <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '0.25rem'}}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                          </svg>
+                          {item.contato || "-"}
+                        </div>
+                      </td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>{item.servico}</td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>
-                        {formatDate(item.data)} às {item.time}
+                        <div style={{display: 'flex', alignItems: 'center', gap: '0.25rem'}}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                          </svg>
+                          {item.local}
+                        </div>
                       </td>
-                      <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>{item.local}</td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem'}}>
                         <span style={{
                           padding: '0.25rem 0.5rem', 
@@ -176,10 +261,10 @@ export default function DashboardHome() {
                           lineHeight: '1.25rem', 
                           fontWeight: '600', 
                           borderRadius: '9999px',
-                          backgroundColor: item.status === 'enviado' ? '#d1fae5' : '#fef3c7',
-                          color: item.status === 'enviado' ? '#065f46' : '#92400e'
+                          backgroundColor: item.status === 'concluido' ? '#d1fae5' : '#fef3c7',
+                          color: item.status === 'concluido' ? '#065f46' : '#92400e'
                         }}>
-                          {item.status}
+                          {item.status === 'concluido' ? 'Concluído' : 'Pendente'}
                         </span>
                       </td>
                     </tr>
@@ -190,6 +275,9 @@ export default function DashboardHome() {
           )}
         </div>
       </div>
+      
+      {/* Calendário de Agendamentos */}
+      <Calendar />
       
       {/* Ações rápidas */}
       <div style={{backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)'}}>
