@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Lock } from 'lucide-react';
+
 
 function Navbar() {
   const location = useLocation();
@@ -22,6 +24,12 @@ function Navbar() {
             <>
               <li><a href="#servicos">Serviços</a></li>
               <li><a href="#cta">Contato</a></li>
+              <li>
+              <Link to="/login">
+              <Lock size={16} style={{ marginRight: 6 }} />
+              Área Restrita
+              </Link>
+              </li>
             </>
           ) : (
             <>
