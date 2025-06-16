@@ -12,27 +12,29 @@ export default function AgendamentosAdmin() {
     data: '',
     time: '',
     local: '',
+    preco: '',
     status: 'pendente'
   });
   const [servicos, setServicos] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const agendamentosData = await databaseService.getAgendamentos();
-        const servicosData = await databaseService.getServicos();
-        setAgendamentos(agendamentosData);
-        setServicos(servicosData);
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-      } finally {
-        setLoading(false);
-      }
+  // Função para carregar dados
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const agendamentosData = await databaseService.getAgendamentos();
+      const servicosData = await databaseService.getServicos();
+      setAgendamentos(agendamentosData);
+      setServicos(servicosData);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadData();
   }, []);
 
@@ -47,23 +49,67 @@ export default function AgendamentosAdmin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (isEditing) {
-        await databaseService.updateAgendamento(currentIndex, currentAgendamento);
-        const updatedAgendamentos = [...agendamentos];
-        updatedAgendamentos[currentIndex] = currentAgendamento;
-        setAgendamentos(updatedAgendamentos);
-      } else {
-        const newAgendamento = await databaseService.addAgendamento(currentAgendamento);
-        setAgendamentos([...agendamentos, newAgendamento]);
+      // Garantir que o ID esteja presente para edição
+      if (isEditing && !currentAgendamento.id) {
+        throw new Error("ID do agendamento não encontrado");
       }
+      
+      // Criar uma cópia do agendamento para processamento
+      const agendamentoToSave = {
+        ...currentAgendamento,
+        // Converter preço com vírgula para formato decimal
+        preco: currentAgendamento.preco ? 
+          parseFloat(currentAgendamento.preco.replace(',', '.')) : 
+          null
+      };
+      
+      console.log('Salvando agendamento:', agendamentoToSave);
+      
+      if (isEditing) {
+        // Atualizar apenas os campos específicos que estão com problemas
+        const simplifiedUpdate = {
+          id: agendamentoToSave.id,
+          data: agendamentoToSave.data,
+          time: agendamentoToSave.time,
+          servico: agendamentoToSave.servico,
+          preco: agendamentoToSave.preco,
+          status: agendamentoToSave.status,
+          // Manter outros campos necessários
+          cliente: agendamentoToSave.cliente,
+          contato: agendamentoToSave.contato,
+          local: agendamentoToSave.local
+        };
+        
+        console.log('Enviando para atualização:', simplifiedUpdate);
+        await databaseService.updateAgendamento(currentIndex, simplifiedUpdate);
+      } else {
+        await databaseService.addAgendamento(agendamentoToSave);
+      }
+      
+      // Recarregar todos os dados
+      await loadData();
       resetForm();
+      alert("Agendamento salvo com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar agendamento:", error);
+      alert("Erro ao salvar agendamento: " + error.message);
     }
   };
 
   const handleEdit = (agendamento, index) => {
-    setCurrentAgendamento(agendamento);
+    console.log('Editando agendamento:', agendamento);
+    
+    // Formatar o preço para exibição com vírgula
+    const formattedAgendamento = {
+      ...agendamento,
+      preco: agendamento.preco ? 
+        String(agendamento.preco).replace('.', ',') : 
+        ''
+    };
+    
+    console.log('Agendamento formatado para edição:', formattedAgendamento);
+    
+    setCurrentAgendamento(formattedAgendamento);
     setCurrentIndex(index);
     setIsEditing(true);
     setShowModal(true);
@@ -73,10 +119,11 @@ export default function AgendamentosAdmin() {
     if (window.confirm("Tem certeza que deseja excluir este agendamento?")) {
       try {
         await databaseService.deleteAgendamento(index, id);
-        const updatedAgendamentos = agendamentos.filter((_, i) => i !== index);
-        setAgendamentos(updatedAgendamentos);
+        // Recarregar todos os dados após excluir
+        await loadData();
       } catch (error) {
         console.error("Erro ao excluir agendamento:", error);
+        alert("Erro ao excluir agendamento: " + error.message);
       }
     }
   };
@@ -89,6 +136,7 @@ export default function AgendamentosAdmin() {
       data: '',
       time: '',
       local: '',
+      preco: '',
       status: 'pendente'
     });
     setIsEditing(false);
@@ -133,6 +181,7 @@ export default function AgendamentosAdmin() {
                   <th style={{padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Data</th>
                   <th style={{padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Horário</th>
                   <th style={{padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Serviço</th>
+                  <th style={{padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Preço</th>
                   <th style={{padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Status</th>
                   <th style={{padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Ações</th>
                 </tr>
@@ -146,6 +195,9 @@ export default function AgendamentosAdmin() {
                     </td>
                     <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>{item.time}</td>
                     <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>{item.servico}</td>
+                    <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>
+                      {item.preco ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco) : '-'}
+                    </td>
                     <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem'}}>
                       <span style={{
                         padding: '0.25rem 0.5rem', 
@@ -357,6 +409,40 @@ export default function AgendamentosAdmin() {
                   value={currentAgendamento.local}
                   onChange={handleInputChange}
                   required
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: '0.375rem',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.875rem'
+                  }}
+                />
+              </div>
+              
+              <div style={{marginBottom: '1rem'}}>
+                <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#4b5563'}}>
+                  Preço (R$)
+                </label>
+                <input
+                  type="text"
+                  name="preco"
+                  value={currentAgendamento.preco || ''}
+                  onChange={(e) => {
+                    // Permitir apenas números e vírgula
+                    const value = e.target.value.replace(/[^0-9,]/g, '');
+                    // Garantir apenas uma vírgula
+                    const formattedValue = value.includes(',') 
+                      ? value.split(',')[0] + ',' + value.split(',')[1]
+                      : value;
+                    
+                    console.log('Preço alterado para:', formattedValue);
+                    
+                    setCurrentAgendamento({
+                      ...currentAgendamento,
+                      preco: formattedValue
+                    });
+                  }}
+                  placeholder="0,00"
                   style={{
                     width: '100%',
                     padding: '0.5rem',

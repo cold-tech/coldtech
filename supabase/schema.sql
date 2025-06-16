@@ -22,6 +22,7 @@ CREATE TABLE agendamentos (
   data DATE NOT NULL,
   time TIME NOT NULL,
   local TEXT NOT NULL,
+  preco DECIMAL(10,2),
   status TEXT NOT NULL DEFAULT 'pendente',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

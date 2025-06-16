@@ -7,6 +7,7 @@ import Dashboard from "../pages/Admin/Dashboard";
 import DashboardHome from "../pages/Admin/components/DashboardHome";
 import AgendamentosAdmin from "../pages/Admin/components/AgendamentosAdmin";
 import ClientesAdmin from "../pages/Admin/components/ClientesAdmin";
+import ServicosAdmin from "../pages/Admin/components/ServicosAdmin";
 import NotFoundPage from "../components/NotFoundPage";
 
 const configuracoesStyle = {
@@ -33,6 +34,7 @@ export default function AppRoutes() {
           <Route index element={<DashboardHome />} />
           <Route path="agendamentos" element={<AgendamentosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />
+          <Route path="servicos" element={<ServicosAdmin />} />
           <Route path="configuracoes" element={
             <div style={configuracoesStyle}>
               <h2 style={configTitleStyle}>Configurações do Sistema</h2>

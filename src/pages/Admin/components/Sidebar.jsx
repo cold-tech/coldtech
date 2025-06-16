@@ -52,6 +52,7 @@ export default function Sidebar() {
     { name: 'Dashboard', icon: IconComponent, path: '/admin' },
     { name: 'Agendamentos', icon: IconComponent, path: '/admin/agendamentos' },
     { name: 'Clientes', icon: IconComponent, path: '/admin/clientes' },
+    { name: 'Serviços', icon: IconComponent, path: '/admin/servicos' },
     { name: 'Configurações', icon: IconComponent, path: '/admin/configuracoes' },
   ];
 
