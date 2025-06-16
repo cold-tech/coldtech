@@ -27,15 +27,19 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [agendamentos, setAgendamentos] = useState([]);
   const [agendamentosDoDia, setAgendamentosDoDia] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   // Carregar agendamentos
   useEffect(() => {
     const loadAgendamentos = async () => {
       try {
+        setLoading(true);
         const agendamentosData = await databaseService.getAgendamentos();
         setAgendamentos(agendamentosData);
       } catch (error) {
         console.error("Erro ao carregar agendamentos:", error);
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -126,6 +130,19 @@ export default function Calendar() {
       setSelectedDate(day.date);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="calendar-container">
+        <div className="calendar-header">
+          <h2>Calendário de Agendamentos</h2>
+        </div>
+        <div style={{textAlign: 'center', padding: '2rem 0'}}>
+          <p>Carregando calendário...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="calendar-container">

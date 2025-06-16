@@ -5,7 +5,7 @@ import databaseService from '../../../services/databaseService';
 
 // Componentes de ícones simples
 const CalendarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-calendar-icon lucide-calendar">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M8 2v4"/>
     <path d="M16 2v4"/>
     <rect width="18" height="18" x="3" y="4" rx="2"/>
@@ -14,14 +14,14 @@ const CalendarIcon = () => (
 );
 
 const UserIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-user-icon lucide-user">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
     <circle cx="12" cy="7" r="4"/>
   </svg>
 );
 
 const ClockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-calendar-minus-icon lucide-calendar-minus">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M16 19h6"/>
     <path d="M16 2v4"/>
     <path d="M21 15V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8.5"/>
@@ -31,7 +31,7 @@ const ClockIcon = () => (
 );
 
 const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-calendar-check-icon lucide-calendar-check">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M8 2v4"/>
     <path d="M16 2v4"/>
     <rect width="18" height="18" x="3" y="4" rx="2"/>
@@ -49,73 +49,54 @@ export default function DashboardHome() {
   });
   
   const [proximosAgendamentos, setProximosAgendamentos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Obter dados do serviço de banco de dados
-    const agendamentos = databaseService.getAgendamentos();
-    
-    // Obter estatísticas
-    const estatisticas = databaseService.getEstatisticas();
-    setStats(estatisticas);
-    
-    // Ordenar agendamentos por data
-    const hoje = new Date();
-    const dataHoje = hoje.toISOString().split('T')[0];
-    
-    // Adicionar dados de exemplo para o dia atual se não houver
-    if (!agendamentos.some(item => item.data === dataHoje)) {
-      // Criar alguns agendamentos para o dia atual
-      const agendamentosHoje = [
-        {
-          cliente: "Carlos Mendes",
-          contato: "(85) 98765-4321",
-          servico: "manutenção preventiva",
-          data: dataHoje,
-          time: "09:30",
-          local: "Av. Santos Dumont, 1500, Aldeota, Fortaleza",
-          status: "pendente"
-        },
-        {
-          cliente: "Maria Silva",
-          contato: "(85) 99876-5432",
-          servico: "instalação de maquina",
-          data: dataHoje,
-          time: "14:00",
-          local: "Rua Padre Valdevino, 250, Joaquim Távora, Fortaleza",
-          status: "pendente"
-        },
-        {
-          cliente: "Roberto Almeida",
-          contato: "(85) 98888-7777",
-          servico: "manutenção corretiva",
-          data: dataHoje,
-          time: "16:30",
-          local: "Av. Washington Soares, 1400, Edson Queiroz, Fortaleza",
-          status: "pendente"
-        }
-      ];
-      
-      // Adicionar ao banco de dados
-      agendamentosHoje.forEach(agendamento => {
-        databaseService.addAgendamento(agendamento);
-      });
+    async function loadData() {
+      try {
+        // Obter estatísticas
+        const estatisticas = await databaseService.getEstatisticas();
+        setStats(estatisticas);
+        
+        // Obter agendamentos do dia atual
+        const hoje = new Date().toISOString().split('T')[0];
+        const agendamentosHoje = await databaseService.getAgendamentosByDate(hoje);
+        
+        // Ordenar por horário
+        agendamentosHoje.sort((a, b) => a.time.localeCompare(b.time));
+        
+        // Definir os agendamentos do dia
+        setProximosAgendamentos(agendamentosHoje);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        // Dados de fallback em caso de erro
+        setProximosAgendamentos([
+          {
+            cliente: "Carlos Mendes",
+            contato: "(85) 98765-4321",
+            servico: "manutenção preventiva",
+            data: new Date().toISOString().split('T')[0],
+            time: "09:30",
+            local: "Av. Santos Dumont, 1500, Aldeota, Fortaleza",
+            status: "pendente"
+          },
+          {
+            cliente: "Maria Silva",
+            contato: "(85) 99876-5432",
+            servico: "instalação de maquina",
+            data: new Date().toISOString().split('T')[0],
+            time: "14:00",
+            local: "Rua Padre Valdevino, 250, Joaquim Távora, Fortaleza",
+            status: "pendente"
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
     }
     
-    // Obter agendamentos do dia atual
-    const agendamentosHoje = databaseService.getAgendamentosByDate(dataHoje);
-    
-    // Ordenar por horário
-    agendamentosHoje.sort((a, b) => a.time.localeCompare(b.time));
-    
-    // Definir os agendamentos do dia
-    setProximosAgendamentos(agendamentosHoje);
+    loadData();
   }, []);
-
-  function formatDate(dateString) {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
-  }
 
   return (
     <div className="p-4">
@@ -187,7 +168,11 @@ export default function DashboardHome() {
         </div>
         
         <div style={{padding: '1rem'}}>
-          {proximosAgendamentos.length === 0 ? (
+          {loading ? (
+            <div style={{textAlign: 'center', padding: '2rem 0'}}>
+              <p>Carregando agendamentos...</p>
+            </div>
+          ) : proximosAgendamentos.length === 0 ? (
             <div style={{textAlign: 'center', padding: '2rem 0'}}>
               <div style={{marginBottom: '1rem', color: '#9ca3af'}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
@@ -226,7 +211,6 @@ export default function DashboardHome() {
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Cliente</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Contato</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Serviço</th>
-                    <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Local</th>
                     <th style={{padding: '0.5rem 1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Status</th>
                   </tr>
                 </thead>
@@ -235,24 +219,8 @@ export default function DashboardHome() {
                     <tr key={index} style={{backgroundColor: index % 2 === 0 ? 'white' : '#f9fafb', borderBottom: '1px solid #e5e7eb'}}>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#111827'}}>{item.time}</td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '500', color: '#111827'}}>{item.cliente}</td>
-                      <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>
-                        <div style={{display: 'flex', alignItems: 'center', gap: '0.25rem'}}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                          </svg>
-                          {item.contato || "-"}
-                        </div>
-                      </td>
+                      <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>{item.contato}</td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>{item.servico}</td>
-                      <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#6b7280'}}>
-                        <div style={{display: 'flex', alignItems: 'center', gap: '0.25rem'}}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                          </svg>
-                          {item.local}
-                        </div>
-                      </td>
                       <td style={{padding: '0.75rem 1rem', fontSize: '0.875rem'}}>
                         <span style={{
                           padding: '0.25rem 0.5rem', 
