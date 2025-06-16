@@ -103,18 +103,19 @@ export default function Table() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [dataFilter, setDataFilter] = useState("");
 
-  // Carrega os dados do JSON ao iniciar
+  // Carrega os dados do Supabase ao iniciar
   useEffect(() => {
-    // Tenta carregar do localStorage primeiro
-    const savedAgendamentos = localStorage.getItem('agendamentos');
-    if (savedAgendamentos) {
-      const parsedData = JSON.parse(savedAgendamentos);
-      setAgendamentos(parsedData);
-      setFilteredAgendamentos(parsedData);
-    } else {
-      setAgendamentos(agendamentosData);
-      setFilteredAgendamentos(agendamentosData);
-    }
+    const loadAgendamentos = async () => {
+      try {
+        const agendamentosData = await databaseService.getAgendamentos();
+        setAgendamentos(agendamentosData);
+        setFilteredAgendamentos(agendamentosData);
+      } catch (error) {
+        console.error("Erro ao carregar agendamentos:", error);
+      }
+    };
+    
+    loadAgendamentos();
   }, []);
 
   // Efeito para aplicar filtros quando os critérios mudarem
@@ -164,43 +165,51 @@ export default function Table() {
     }));
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     // Validação dos campos
     if (!form.cliente || !form.contato || !form.servico || !form.data || !form.time || !form.local) {
       alert("Preencha todos os campos!");
       return;
     }
 
-    if (editMode && editIndex !== null) {
-      // Atualizar agendamento existente
-      const updatedAgendamentos = [...agendamentos];
-      updatedAgendamentos[editIndex] = form;
-      setAgendamentos(updatedAgendamentos);
+    try {
+      if (editMode && editIndex !== null) {
+        // Atualizar agendamento existente
+        const updatedAgendamento = await databaseService.updateAgendamento(editIndex, form);
+        
+        // Atualizar a lista local
+        const updatedAgendamentos = [...agendamentos];
+        const index = updatedAgendamentos.findIndex(item => item.id === form.id);
+        if (index !== -1) {
+          updatedAgendamentos[index] = updatedAgendamento;
+        }
+        setAgendamentos(updatedAgendamentos);
+        
+        // Sair do modo de edição
+        setEditMode(false);
+        setEditIndex(null);
+      } else {
+        // Adicionar novo agendamento
+        const newAgendamento = await databaseService.addAgendamento(form);
+        
+        // Adiciona o novo agendamento no início da lista
+        setAgendamentos([newAgendamento, ...agendamentos]);
+      }
       
-      // Sair do modo de edição
-      setEditMode(false);
-      setEditIndex(null);
-    } else {
-      // Adiciona o novo agendamento no início da lista
-      const newAgendamentos = [form, ...agendamentos];
-      setAgendamentos(newAgendamentos);
+      // Limpa o formulário
+      setForm({
+        cliente: "",
+        contato: "",
+        servico: tiposServico[0],
+        data: "",
+        time: "",
+        local: "",
+        status: "pendente"
+      });
+    } catch (error) {
+      console.error("Erro ao salvar agendamento:", error);
+      alert("Erro ao salvar agendamento. Tente novamente.");
     }
-    
-    // Limpa o formulário
-    setForm({
-      cliente: "",
-      contato: "",
-      servico: tiposServico[0],
-      data: "",
-      time: "",
-      local: "",
-      status: "pendente"
-    });
-
-    // Salvar no localStorage para persistência
-    localStorage.setItem('agendamentos', JSON.stringify(
-      editMode ? agendamentos : [form, ...agendamentos]
-    ));
   };
 
   const handleEdit = (index) => {
@@ -227,25 +236,43 @@ export default function Table() {
     });
   };
 
-  const handleDelete = (indexToDelete) => {
+  const handleDelete = async (indexToDelete) => {
     const confirm = window.confirm("Tem certeza que deseja excluir?");
     if (!confirm) return;
     
-    // Remove o item pelo índice
-    const newAgendamentos = agendamentos.filter((_, index) => index !== indexToDelete);
-    setAgendamentos(newAgendamentos);
-    
-    // Atualiza o localStorage
-    localStorage.setItem('agendamentos', JSON.stringify(newAgendamentos));
+    try {
+      const agendamentoToDelete = agendamentos[indexToDelete];
+      
+      // Excluir do Supabase
+      await databaseService.deleteAgendamento(indexToDelete, agendamentoToDelete.id);
+      
+      // Atualizar a lista local
+      const newAgendamentos = agendamentos.filter((_, index) => index !== indexToDelete);
+      setAgendamentos(newAgendamentos);
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+      alert("Erro ao excluir agendamento. Tente novamente.");
+    }
   };
 
-  const handleStatusChange = (index) => {
-    const updatedAgendamentos = [...agendamentos];
-    updatedAgendamentos[index].status = 
-      updatedAgendamentos[index].status === "pendente" ? "concluido" : "pendente";
-    
-    setAgendamentos(updatedAgendamentos);
-    localStorage.setItem('agendamentos', JSON.stringify(updatedAgendamentos));
+  const handleStatusChange = async (index) => {
+    try {
+      const updatedAgendamentos = [...agendamentos];
+      const agendamento = {...updatedAgendamentos[index]};
+      
+      // Alternar status
+      agendamento.status = agendamento.status === "pendente" ? "concluido" : "pendente";
+      
+      // Atualizar no Supabase
+      const updatedAgendamento = await databaseService.updateAgendamento(index, agendamento);
+      
+      // Atualizar a lista local
+      updatedAgendamentos[index] = updatedAgendamento;
+      setAgendamentos(updatedAgendamentos);
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      alert("Erro ao atualizar status. Tente novamente.");
+    }
   };
 
   const getStatusClass = (status) => {
