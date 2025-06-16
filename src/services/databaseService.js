@@ -12,7 +12,11 @@ class DatabaseService {
   async initializeData() {
     try {
       // Verificar se já existem dados no Supabase
-      const { data: agendamentos } = await supabase.from('agendamentos').select('*').limit(1);
+      const { data: agendamentos, error } = await supabase.from('agendamentos').select('*').limit(1);
+      
+      if (error) {
+        throw error;
+      }
       
       if (!agendamentos || agendamentos.length === 0) {
         // Se não houver dados, inicializar com os dados do JSON
@@ -289,29 +293,31 @@ class DatabaseService {
         throw new Error('ID do agendamento não fornecido');
       }
       
-      // Buscar ou criar cliente
-      let cliente_id;
-      const { data: clienteExistente } = await supabase
-        .from('clientes')
-        .select('id')
-        .eq('nome', agendamento.cliente)
+      // Primeiro, obter o agendamento atual para saber qual cliente está associado
+      const { data: currentAgendamento, error: getError } = await supabase
+        .from('agendamentos')
+        .select(`
+          *,
+          clientes (id, nome, contato, endereco)
+        `)
+        .eq('id', agendamento.id)
         .single();
       
-      if (clienteExistente) {
-        cliente_id = clienteExistente.id;
-      } else {
-        const { data: novoCliente } = await supabase
-          .from('clientes')
-          .insert({
-            nome: agendamento.cliente,
-            contato: agendamento.contato,
-            endereco: agendamento.local
-          })
-          .select('id')
-          .single();
-        
-        cliente_id = novoCliente.id;
-      }
+      if (getError) throw getError;
+      
+      // Atualizar o cliente existente em vez de criar um novo
+      const clienteAtual = currentAgendamento.clientes;
+      const cliente_id = clienteAtual.id;
+      
+      // Atualizar os dados do cliente
+      await supabase
+        .from('clientes')
+        .update({
+          nome: agendamento.cliente,
+          contato: agendamento.contato,
+          endereco: agendamento.local
+        })
+        .eq('id', cliente_id);
       
       // Buscar serviço
       const { data: servico } = await supabase
@@ -404,6 +410,57 @@ class DatabaseService {
     }
   }
 
+  // Adicionar cliente
+  async addCliente(cliente) {
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .insert(cliente)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erro ao adicionar cliente:', error);
+      return null;
+    }
+  }
+
+  // Atualizar cliente
+  async updateCliente(id, cliente) {
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .update(cliente)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erro ao atualizar cliente:', error);
+      return null;
+    }
+  }
+
+  // Excluir cliente
+  async deleteCliente(id) {
+    try {
+      const { error } = await supabase
+        .from('clientes')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      return false;
+    }
+  }
+
   // SERVIÇOS
   async getServicos() {
     try {
@@ -425,32 +482,42 @@ class DatabaseService {
       const hoje = new Date().toISOString().split('T')[0];
       
       // Contar total de agendamentos
-      const { count: totalAgendamentos } = await supabase
+      const { count: totalAgendamentos, error: errorTotal } = await supabase
         .from('agendamentos')
         .select('*', { count: 'exact', head: true });
       
+      if (errorTotal) throw errorTotal;
+      
       // Contar agendamentos pendentes
-      const { count: pendentes } = await supabase
+      const { count: pendentes, error: errorPendentes } = await supabase
         .from('agendamentos')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pendente');
       
+      if (errorPendentes) throw errorPendentes;
+      
       // Contar agendamentos concluídos
-      const { count: concluidos } = await supabase
+      const { count: concluidos, error: errorConcluidos } = await supabase
         .from('agendamentos')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'concluido');
       
+      if (errorConcluidos) throw errorConcluidos;
+      
       // Contar clientes únicos
-      const { count: clientesUnicos } = await supabase
+      const { count: clientesUnicos, error: errorClientes } = await supabase
         .from('clientes')
         .select('*', { count: 'exact', head: true });
       
+      if (errorClientes) throw errorClientes;
+      
       // Contar agendamentos de hoje
-      const { count: agendamentosHoje } = await supabase
+      const { count: agendamentosHoje, error: errorHoje } = await supabase
         .from('agendamentos')
         .select('*', { count: 'exact', head: true })
         .eq('data', hoje);
+      
+      if (errorHoje) throw errorHoje;
       
       return {
         totalAgendamentos: totalAgendamentos || 0,
@@ -463,7 +530,7 @@ class DatabaseService {
       console.error('Erro ao buscar estatísticas:', error);
       
       // Fallback para cálculo local
-      const agendamentos = this.database?.agendamentos || [];
+      const agendamentos = await this.getAgendamentos();
       const hoje = new Date().toISOString().split('T')[0];
       
       return {

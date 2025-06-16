@@ -7,21 +7,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUser = () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
-        localStorage.removeItem('user');
-      } finally {
-        setLoading(false);
-      }
+    // Definir um usuário padrão para desenvolvimento
+    const userData = { 
+      id: 1, 
+      name: 'Administrador', 
+      email: 'admin@coldtech.com',
+      role: 'admin'
     };
-    
-    loadUser();
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setLoading(false);
   }, []);
 
   const login = (credentials) => {
