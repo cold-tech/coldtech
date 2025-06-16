@@ -107,6 +107,7 @@ class DatabaseService {
         data: item.data,
         time: item.time,
         local: item.local,
+        preco: item.preco_personalizado,
         status: item.status
       }));
     } catch (error) {
@@ -139,6 +140,7 @@ class DatabaseService {
         data: item.data,
         time: item.time,
         local: item.local,
+        preco: item.preco_personalizado,
         status: item.status
       }));
     } catch (error) {
@@ -171,6 +173,7 @@ class DatabaseService {
         data: item.data,
         time: item.time,
         local: item.local,
+        preco: item.preco_personalizado,
         status: item.status
       }));
     } catch (error) {
@@ -203,6 +206,7 @@ class DatabaseService {
         data: item.data,
         time: item.time,
         local: item.local,
+        preco: item.preco_personalizado,
         status: item.status
       }));
     } catch (error) {
@@ -254,6 +258,7 @@ class DatabaseService {
           data: agendamento.data,
           time: agendamento.time,
           local: agendamento.local,
+          preco_personalizado: agendamento.preco,
           status: agendamento.status
         })
         .select(`
@@ -274,6 +279,7 @@ class DatabaseService {
         data: data.data,
         time: data.time,
         local: data.local,
+        preco: data.preco_personalizado,
         status: data.status
       };
     } catch (error) {
@@ -293,31 +299,7 @@ class DatabaseService {
         throw new Error('ID do agendamento não fornecido');
       }
       
-      // Primeiro, obter o agendamento atual para saber qual cliente está associado
-      const { data: currentAgendamento, error: getError } = await supabase
-        .from('agendamentos')
-        .select(`
-          *,
-          clientes (id, nome, contato, endereco)
-        `)
-        .eq('id', agendamento.id)
-        .single();
-      
-      if (getError) throw getError;
-      
-      // Atualizar o cliente existente em vez de criar um novo
-      const clienteAtual = currentAgendamento.clientes;
-      const cliente_id = clienteAtual.id;
-      
-      // Atualizar os dados do cliente
-      await supabase
-        .from('clientes')
-        .update({
-          nome: agendamento.cliente,
-          contato: agendamento.contato,
-          endereco: agendamento.local
-        })
-        .eq('id', cliente_id);
+      console.log('Atualizando agendamento:', agendamento);
       
       // Buscar serviço
       const { data: servico } = await supabase
@@ -326,36 +308,37 @@ class DatabaseService {
         .eq('tipo', agendamento.servico)
         .single();
       
-      // Atualizar agendamento
+      // Atualização direta no banco de dados sem verificações adicionais
       const { data, error } = await supabase
         .from('agendamentos')
         .update({
-          cliente_id,
-          servico_id: servico.id,
           data: agendamento.data,
           time: agendamento.time,
-          local: agendamento.local,
+          servico_id: servico.id,  // Adicionar esta linha para atualizar o serviço
+          preco_personalizado: agendamento.preco,
           status: agendamento.status
         })
         .eq('id', agendamento.id)
-        .select(`
-          *,
-          clientes (nome, contato),
-          servicos (tipo)
-        `)
+        .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro na atualização:', error);
+        throw error;
+      }
       
-      // Transformar para o formato esperado pela aplicação
+      console.log('Agendamento atualizado com sucesso:', data);
+      
+      // Retornar o agendamento atualizado no formato esperado pela aplicação
       return {
         id: data.id,
-        cliente: data.clientes?.nome || '',
-        contato: data.clientes?.contato || '',
-        servico: data.servicos?.tipo || '',
+        cliente: agendamento.cliente,
+        contato: agendamento.contato,
+        servico: agendamento.servico,
         data: data.data,
         time: data.time,
-        local: data.local,
+        local: agendamento.local,
+        preco: data.preco_personalizado,
         status: data.status
       };
     } catch (error) {
@@ -480,6 +463,9 @@ class DatabaseService {
   async getEstatisticas() {
     try {
       const hoje = new Date().toISOString().split('T')[0];
+      const dataAtual = new Date();
+      const primeiroDiaMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1).toISOString().split('T')[0];
+      const ultimoDiaMes = new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 0).toISOString().split('T')[0];
       
       // Contar total de agendamentos
       const { count: totalAgendamentos, error: errorTotal } = await supabase
@@ -519,12 +505,60 @@ class DatabaseService {
       
       if (errorHoje) throw errorHoje;
       
+      // Inicializar valores padrão para evitar NaN
+      let faturamentoMes = 0;
+      let previsaoFaturamento = 0;
+      
+      try {
+        // Calcular faturamento do mês (agendamentos concluídos)
+        const { data: agendamentosConcluidos, error: errorFaturamento } = await supabase
+          .from('agendamentos')
+          .select('preco_personalizado')
+          .eq('status', 'concluido')
+          .gte('data', primeiroDiaMes)
+          .lte('data', ultimoDiaMes);
+        
+        if (errorFaturamento) throw errorFaturamento;
+        
+        if (agendamentosConcluidos && agendamentosConcluidos.length > 0) {
+          faturamentoMes = agendamentosConcluidos.reduce((total, item) => {
+            // Garantir que o valor seja um número válido
+            const precoStr = String(item.preco_personalizado || '0');
+            const precoNum = parseFloat(precoStr.replace(',', '.'));
+            return total + (isNaN(precoNum) ? 0 : precoNum);
+          }, 0);
+        }
+        
+        // Calcular previsão de faturamento (todos os agendamentos do mês)
+        const { data: todosAgendamentosMes, error: errorPrevisao } = await supabase
+          .from('agendamentos')
+          .select('preco_personalizado, status')
+          .gte('data', primeiroDiaMes)
+          .lte('data', ultimoDiaMes);
+        
+        if (errorPrevisao) throw errorPrevisao;
+        
+        if (todosAgendamentosMes && todosAgendamentosMes.length > 0) {
+          previsaoFaturamento = todosAgendamentosMes.reduce((total, item) => {
+            // Garantir que o valor seja um número válido
+            const precoStr = String(item.preco_personalizado || '0');
+            const precoNum = parseFloat(precoStr.replace(',', '.'));
+            return total + (isNaN(precoNum) ? 0 : precoNum);
+          }, 0);
+        }
+      } catch (error) {
+        console.error('Erro ao calcular faturamento:', error);
+        // Manter os valores padrão em caso de erro
+      }
+      
       return {
         totalAgendamentos: totalAgendamentos || 0,
         pendentes: pendentes || 0,
         concluidos: concluidos || 0,
         clientesUnicos: clientesUnicos || 0,
-        agendamentosHoje: agendamentosHoje || 0
+        agendamentosHoje: agendamentosHoje || 0,
+        faturamentoMes: faturamentoMes || 0,
+        previsaoFaturamento: previsaoFaturamento || 0
       };
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);

@@ -45,7 +45,9 @@ export default function DashboardHome() {
     totalAgendamentos: 0,
     pendentes: 0,
     concluidos: 0,
-    clientesUnicos: 0
+    clientesUnicos: 0,
+    faturamentoMes: 0,
+    previsaoFaturamento: 0
   });
   
   const [proximosAgendamentos, setProximosAgendamentos] = useState([]);
@@ -103,7 +105,7 @@ export default function DashboardHome() {
       <h1 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#333'}}>Dashboard</h1>
       
       {/* Cards de estatísticas */}
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '1rem', marginBottom: '2rem'}}>
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', marginBottom: '1rem'}}>
         <div style={{backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '1rem', borderLeft: '4px solid #3b82f6'}}>
           <div style={{display: 'flex', alignItems: 'center'}}>
             <div style={{padding: '0.75rem', borderRadius: '9999px', backgroundColor: '#dbeafe', color: '#3b82f6', marginRight: '1rem'}}>
@@ -139,7 +141,9 @@ export default function DashboardHome() {
             </div>
           </div>
         </div>
-        
+      </div>
+      
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '1rem', marginBottom: '2rem'}}>
         <div style={{backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '1rem', borderLeft: '4px solid #8b5cf6'}}>
           <div style={{display: 'flex', alignItems: 'center'}}>
             <div style={{padding: '0.75rem', borderRadius: '9999px', backgroundColor: '#ede9fe', color: '#8b5cf6', marginRight: '1rem'}}>
@@ -148,6 +152,36 @@ export default function DashboardHome() {
             <div>
               <p style={{fontSize: '0.875rem', color: '#6b7280'}}>Clientes</p>
               <p style={{fontSize: '1.25rem', fontWeight: 'bold'}}>{stats.clientesUnicos}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '1rem', borderLeft: '4px solid #059669'}}>
+          <div style={{display: 'flex', alignItems: 'center'}}>
+            <div style={{padding: '0.75rem', borderRadius: '9999px', backgroundColor: '#d1fae5', color: '#059669', marginRight: '1rem'}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div>
+              <p style={{fontSize: '0.875rem', color: '#6b7280'}}>Faturado no Mês</p>
+              <p style={{fontSize: '1.25rem', fontWeight: 'bold'}}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.faturamentoMes)}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '1rem', borderLeft: '4px solid #0284c7'}}>
+          <div style={{display: 'flex', alignItems: 'center'}}>
+            <div style={{padding: '0.75rem', borderRadius: '9999px', backgroundColor: '#e0f2fe', color: '#0284c7', marginRight: '1rem'}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div>
+              <p style={{fontSize: '0.875rem', color: '#6b7280'}}>Previsão de Faturamento</p>
+              <p style={{fontSize: '1.25rem', fontWeight: 'bold'}}>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.previsaoFaturamento)}</p>
             </div>
           </div>
         </div>
