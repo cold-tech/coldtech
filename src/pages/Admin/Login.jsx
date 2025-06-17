@@ -30,15 +30,19 @@ export default function Login() {
         return;
       }
       
-      const success = login(credentials);
+      console.log('Tentando login com:', credentials.email, credentials.password);
+      
+      const success = await login(credentials);
       if (success) {
+        console.log('Login bem-sucedido, redirecionando...');
         navigate('/admin');
       } else {
+        console.log('Login falhou');
         setError('Usuário ou senha inválidos');
       }
     } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.');
-      console.error(err);
+      console.error('Erro detalhado:', err);
+      setError('Erro ao fazer login: ' + (err.message || 'Tente novamente.'));
     } finally {
       setIsLoading(false);
     }

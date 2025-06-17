@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Agenda from "../pages/Agenda";
 import HomePage from "../components/HomePage";
 import Login from "../pages/Admin/Login";
@@ -9,6 +9,8 @@ import AgendamentosAdmin from "../pages/Admin/components/AgendamentosAdmin";
 import ClientesAdmin from "../pages/Admin/components/ClientesAdmin";
 import ServicosAdmin from "../pages/Admin/components/ServicosAdmin";
 import NotFoundPage from "../components/NotFoundPage";
+import PrivateRoute from "./PrivateRoute";
+import authService from "../services/authService";
 
 const configuracoesStyle = {
   padding: '1rem',
@@ -30,7 +32,11 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<Dashboard />}>
+        <Route path="/admin" element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }>
           <Route index element={<DashboardHome />} />
           <Route path="agendamentos" element={<AgendamentosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />
