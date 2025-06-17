@@ -53,7 +53,7 @@ function CTASection({ openModal }) {
             onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
-            Solicitar Atendimento
+            Solicitar Agendamento
           </button>
         </div>
       </div>
