@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
+import authService from '../services/authService';
 
 export const AuthContext = createContext();
 
@@ -7,37 +8,44 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Definir um usuário padrão para desenvolvimento
-    const userData = { 
-      id: 1, 
-      name: 'Administrador', 
-      email: 'admin@coldtech.com',
-      role: 'admin'
+    // Verificar se o usuário já está autenticado
+    const checkAuth = () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      }
+      setLoading(false);
     };
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setLoading(false);
+    
+    // Verificar autenticação ao iniciar
+    checkAuth();
+    
+    // Adicionar listener para mudanças no localStorage
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
-  const login = (credentials) => {
-    // Simulação de autenticação - em produção, isso seria uma chamada API
-    if (credentials.email === 'admin@coldtech.com' && credentials.password === 'admin123') {
-      const userData = { 
-        id: 1, 
-        name: 'Administrador', 
-        email: credentials.email,
-        role: 'admin'
-      };
+  const login = async (credentials) => {
+    try {
+      const userData = await authService.login(credentials.email, credentials.password);
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
       return true;
+    } catch (error) {
+      console.error('Erro no login:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   return (

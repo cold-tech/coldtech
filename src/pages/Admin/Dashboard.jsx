@@ -1,7 +1,10 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useContext } from 'react';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import './admin.css';
+import { AuthContext } from '../../contexts/AuthContext';
+import authService from '../../services/authService';
 
 const dashboardStyle = {
   height: '100vh',
@@ -25,6 +28,21 @@ const mainStyle = {
 };
 
 export default function Dashboard() {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  
+  // Verificação adicional de segurança
+  useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  // Se não houver usuário, não renderizar nada
+  if (!user) {
+    return null;
+  }
+
   return (
     <div style={dashboardStyle}>
       <Sidebar />
