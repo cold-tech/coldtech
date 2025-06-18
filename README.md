@@ -82,26 +82,25 @@ npm run build
 Se encontrar problemas com dependências durante o deploy:
 
 1. Verifique se todas as dependências estão corretamente listadas no `package.json`
-2. Certifique-se de que o arquivo `vercel.json` está configurado corretamente:
+2. Use a configuração atualizada do `vercel.json`:
    ```json
    {
      "version": 2,
-     "builds": [
-       {
-         "src": "package.json",
-         "use": "@vercel/static-build",
-         "config": {
-           "distDir": "dist"
-         }
-       }
-     ],
+     "buildCommand": "npm run build",
+     "installCommand": "npm install --legacy-peer-deps",
+     "outputDirectory": "dist",
      "routes": [
        { "handle": "filesystem" },
        { "src": "/(.*)", "dest": "/index.html" }
      ]
    }
    ```
-3. Para problemas com módulos específicos, considere usar alternativas mais simples ou remover funcionalidades não essenciais para o deploy inicial
+3. Crie um arquivo `.npmrc` na raiz do projeto com o seguinte conteúdo:
+   ```
+   legacy-peer-deps=true
+   ```
+4. Para conflitos de dependências específicos (como lucide-react), atualize para versões compatíveis com React 18
+5. Use `vite build` diretamente no script de build do package.json em vez de scripts personalizados
 
 ## Arquitetura do Sistema
 
