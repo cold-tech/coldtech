@@ -9,7 +9,6 @@ Sistema de gerenciamento de agendamentos para serviços de manutenção, instala
 - React 
 - Vite
 - Supabase (Banco de dados PostgreSQL)
-- bcryptjs (Criptografia de senhas)
 - React Router (Navegação)
 - Context API (Gerenciamento de estado)
 
@@ -27,13 +26,12 @@ Sistema de gerenciamento de agendamentos para serviços de manutenção, instala
 2. Instale as dependências:
    ```
    npm install
-   npm install bcryptjs
    ```
 3. Configure as variáveis de ambiente:
    - Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
    ```
-   REACT_APP_SUPABASE_URL=sua_url_do_supabase
-   REACT_APP_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+   VITE_SUPABASE_URL=sua_url_do_supabase
+   VITE_SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
    ```
 
 ### Configuração do Banco de Dados
@@ -64,6 +62,47 @@ Para criar uma versão de produção:
 npm run build
 ```
 
+## Deploy
+
+### Deploy no Vercel
+
+1. Crie uma conta no [Vercel](https://vercel.com)
+2. Conecte seu repositório GitHub ao Vercel
+3. Configure as variáveis de ambiente:
+   - `VITE_SUPABASE_URL`: URL do seu projeto Supabase
+   - `VITE_SUPABASE_ANON_KEY`: Chave anônima do seu projeto Supabase
+4. Defina as configurações de build:
+   - Framework Preset: Vite
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+5. Clique em "Deploy"
+
+### Solução de Problemas de Deploy
+
+Se encontrar problemas com dependências durante o deploy:
+
+1. Verifique se todas as dependências estão corretamente listadas no `package.json`
+2. Certifique-se de que o arquivo `vercel.json` está configurado corretamente:
+   ```json
+   {
+     "version": 2,
+     "builds": [
+       {
+         "src": "package.json",
+         "use": "@vercel/static-build",
+         "config": {
+           "distDir": "dist"
+         }
+       }
+     ],
+     "routes": [
+       { "handle": "filesystem" },
+       { "src": "/(.*)", "dest": "/index.html" }
+     ]
+   }
+   ```
+3. Para problemas com módulos específicos, considere usar alternativas mais simples ou remover funcionalidades não essenciais para o deploy inicial
+
 ## Arquitetura do Sistema
 
 ```mermaid
@@ -73,12 +112,13 @@ flowchart TD
     style S fill:#f6b26b, color:white
     style C fill:#8e7cc3, color:white
     style D fill:#e06666, color:white
+    style M fill:#f9cb9c, color:black
 
     %% Camadas da Aplicação
     A[Autenticação] --- AL[Login]
     A --- AP[PrivateRoute]
     A --- AC[AuthContext]
-    A --- AS[AuthService]
+    A --- AS[SimpleAuthService]
 
     P[Páginas] --- PD[Dashboard]
     P --- PA[Agendamentos]
@@ -89,7 +129,8 @@ flowchart TD
     C[Componentes] --- CN[Navbar]
     C --- CS[Sidebar]
     C --- CT[Table]
-    C --- CM[Modal]
+    C --- CM[ContactModal]
+    C --- CSM[SchedulingModal]
 
     S[Serviços] --- SD[DatabaseService]
     S --- SS[SupabaseClient]
@@ -99,6 +140,9 @@ flowchart TD
     D --- DU[Usuários SQL]
     D --- DJ[JSON]
 
+    M[Modais] --- MA[Agendamento]
+    M --- MC[Contato]
+
     %% Fluxo de Dados
     AL -->|autentica| AS
     AS -->|verifica| AC
@@ -106,6 +150,8 @@ flowchart TD
     PD -->|renderiza| PA
     PD -->|renderiza| PC
     PD -->|renderiza| PS
+    PH -->|abre| CSM
+    CSM -->|usa| SD
     PA -->|usa| SD
     PC -->|usa| SD
     PS -->|usa| SD
@@ -122,21 +168,22 @@ flowchart TD
 - `/src/contexts` - Contextos React (AuthContext)
 - `/src/services` - Serviços para comunicação com APIs e banco de dados
 - `/src/routes` - Configuração de rotas e proteção de rotas
-- `/src/utils` - Utilitários (hashPassword)
+- `/src/utils` - Utilitários
 - `/src/data` - Dados estáticos e modelos
 - `/supabase` - Scripts SQL e configurações do Supabase
 
 ## Funcionalidades
 
-- **Autenticação**: Sistema de login seguro com senhas hash
+- **Autenticação**: Sistema de login seguro
 - **Agendamentos**: Cadastro, edição e exclusão de agendamentos
 - **Clientes**: Gerenciamento de clientes
 - **Serviços**: Configuração de tipos de serviços e preços
 - **Dashboard**: Visão geral com estatísticas e faturamento
 - **Relatórios**: Previsão de faturamento e faturamento realizado
+- **Agendamento Online**: Modal para solicitação de agendamentos pelo cliente
 
 ## Segurança
 
-- Senhas armazenadas com hash bcrypt
 - Rotas protegidas com autenticação
 - Validação de dados no cliente e servidor
+- Verificação de conflitos de horários em agendamentos

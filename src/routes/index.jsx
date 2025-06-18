@@ -10,7 +10,7 @@ import ClientesAdmin from "../pages/Admin/components/ClientesAdmin";
 import ServicosAdmin from "../pages/Admin/components/ServicosAdmin";
 import NotFoundPage from "../components/NotFoundPage";
 import PrivateRoute from "./PrivateRoute";
-import authService from "../services/authService";
+import authService from "../services/simpleAuthService";
 
 const configuracoesStyle = {
   padding: '1rem',

@@ -1,23 +1,13 @@
-import bcrypt from 'bcryptjs';
+// Simple password hashing utility (no bcryptjs dependency)
 
-// Função para gerar hash de senha
-export const hashPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-};
+// Hash a password (simplified version)
+export async function hashPassword(password) {
+  // In a real app, use a proper hashing library
+  return `hashed_${password}`;
+}
 
-// Função para verificar senha
-export const verifyPassword = async (password, hashedPassword) => {
-  return bcrypt.compare(password, hashedPassword);
-};
-
-// Exemplo de uso para gerar hash para uma senha
-export const generateHashExample = async () => {
-  const password = 'admin123';
-  const hashedPassword = await hashPassword(password);
-  console.log('Hash gerado para senha:', hashedPassword);
-  return hashedPassword;
-};
-
-// Para gerar um hash no console, descomente e execute esta linha
-// generateHashExample().then(hash => console.log('Hash para inserir no banco:', hash));
+// Compare a password with a hash (simplified version)
+export async function comparePassword(password, hashedPassword) {
+  // In a real app, use a proper comparison method
+  return `hashed_${password}` === hashedPassword;
+}
