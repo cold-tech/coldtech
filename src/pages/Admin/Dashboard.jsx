@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import './admin.css';
 import { AuthContext } from '../../contexts/AuthContext';
-import authService from '../../services/authService';
+import authService from '../../services/simpleAuthService';
 
 const dashboardStyle = {
   height: '100vh',
