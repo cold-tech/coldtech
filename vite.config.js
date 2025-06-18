@@ -20,9 +20,6 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     },
   },
-  optimizeDeps: {
-    include: ['bcryptjs']
-  },
   server: {
     port: 3000,
   },
