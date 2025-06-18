@@ -15,6 +15,15 @@ function SchedulingModal({ closeModal }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [availableTimes, setAvailableTimes] = useState([]);
+  const [busyTimes, setBusyTimes] = useState([]);
+  const [isCheckingTimes, setIsCheckingTimes] = useState(false);
+
+  // Horários disponíveis para agendamento
+  const allTimeSlots = [
+    '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', 
+    '14:00', '15:00', '16:00', '17:00'
+  ];
 
   useEffect(() => {
     // Carregar serviços disponíveis
@@ -28,18 +37,85 @@ function SchedulingModal({ closeModal }) {
     // Definir a data para o dia seguinte por padrão
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
     setFormData(prev => ({
       ...prev,
-      data: tomorrow.toISOString().split('T')[0]
+      data: tomorrowStr
     }));
   }, []);
 
+  // Verificar horários disponíveis quando a data muda
+  useEffect(() => {
+    if (formData.data) {
+      checkAvailableTimes(formData.data);
+    }
+  }, [formData.data]);
+
+  // Função para verificar horários disponíveis
+  const checkAvailableTimes = async (date) => {
+    setIsCheckingTimes(true);
+    setError('');
+    
+    try {
+      // Limpar o horário selecionado ao mudar de data
+      setFormData(prev => ({
+        ...prev,
+        time: ''
+      }));
+      
+      // Buscar agendamentos existentes para a data selecionada
+      const agendamentos = await databaseService.getAgendamentosByDate(date);
+      
+      // Extrair horários ocupados (garantindo formato consistente)
+      const ocupados = agendamentos.map(agendamento => {
+        // Normalizar formato do horário (remover segundos se existirem)
+        let time = agendamento.time;
+        if (time.includes(':')) {
+          const parts = time.split(':');
+          if (parts.length >= 2) {
+            time = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+          }
+        }
+        return time;
+      });
+      
+      console.log('Horários ocupados:', ocupados);
+      setBusyTimes(ocupados);
+      
+      // Filtrar horários disponíveis
+      const disponíveis = allTimeSlots.filter(time => !ocupados.includes(time));
+      console.log('Horários disponíveis:', disponíveis);
+      setAvailableTimes(disponíveis);
+      
+      // Se não houver horários disponíveis, mostrar mensagem
+      if (disponíveis.length === 0) {
+        setError(`Não há horários disponíveis para ${date}. Por favor, selecione outra data.`);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar horários disponíveis:', err);
+      setError('Erro ao verificar horários disponíveis. Tente novamente.');
+    } finally {
+      setIsCheckingTimes(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'data') {
+      // Quando a data muda, resetamos o horário
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        time: ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -51,6 +127,14 @@ function SchedulingModal({ closeModal }) {
       // Validar campos obrigatórios
       if (!formData.cliente || !formData.contato || !formData.data || !formData.time || !formData.local) {
         throw new Error('Por favor, preencha todos os campos obrigatórios.');
+      }
+      
+      // Verificar novamente se o horário está disponível
+      const currentAgendamentos = await databaseService.getAgendamentosByDate(formData.data);
+      const currentBusyTimes = currentAgendamentos.map(a => a.time);
+      
+      if (currentBusyTimes.includes(formData.time)) {
+        throw new Error('Este horário não está mais disponível. Por favor, selecione outro horário.');
       }
       
       // Adicionar agendamento
@@ -237,21 +321,40 @@ function SchedulingModal({ closeModal }) {
                 <label htmlFor="time" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
                   Horário Preferido *
                 </label>
-                <input 
-                  type="time" 
+                <select 
                   id="time" 
                   name="time" 
                   value={formData.time}
                   onChange={handleChange}
                   required
+                  disabled={isCheckingTimes || availableTimes.length === 0}
                   style={{
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '6px',
                     border: '1px solid #d1d5db',
-                    fontSize: '1rem'
+                    fontSize: '1rem',
+                    backgroundColor: 'white',
+                    opacity: isCheckingTimes ? 0.7 : 1
                   }}
-                />
+                >
+                  <option value="">Selecione um horário</option>
+                  {availableTimes.map(time => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+                {isCheckingTimes && (
+                  <p style={{ color: '#2563eb', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                    Verificando horários disponíveis...
+                  </p>
+                )}
+                {!isCheckingTimes && availableTimes.length === 0 && (
+                  <p style={{ color: '#b91c1c', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                    Não há horários disponíveis nesta data
+                  </p>
+                )}
               </div>
             </div>
             
@@ -297,7 +400,7 @@ function SchedulingModal({ closeModal }) {
               
               <button 
                 type="submit" 
-                disabled={loading}
+                disabled={loading || isCheckingTimes || availableTimes.length === 0 || !formData.time}
                 style={{
                   padding: '0.75rem 1.5rem',
                   borderRadius: '6px',
@@ -306,8 +409,8 @@ function SchedulingModal({ closeModal }) {
                   color: 'white',
                   fontSize: '1rem',
                   fontWeight: '500',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.7 : 1
+                  cursor: (loading || isCheckingTimes || availableTimes.length === 0 || !formData.time) ? 'not-allowed' : 'pointer',
+                  opacity: (loading || isCheckingTimes || availableTimes.length === 0 || !formData.time) ? 0.7 : 1
                 }}
               >
                 {loading ? 'Enviando...' : 'Solicitar Agendamento'}
