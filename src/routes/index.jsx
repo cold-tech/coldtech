@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Agenda from "../pages/Agenda";
 import HomePage from "../components/HomePage";
 import Login from "../pages/Admin/Login";
@@ -9,6 +9,8 @@ import AgendamentosAdmin from "../pages/Admin/components/AgendamentosAdmin";
 import ClientesAdmin from "../pages/Admin/components/ClientesAdmin";
 import ServicosAdmin from "../pages/Admin/components/ServicosAdmin";
 import NotFoundPage from "../components/NotFoundPage";
+import SchedulingModal from "../components/SchedulingModal";
+import WhatsAppButton from "../components/WhatsAppButton";
 import PrivateRoute from "./PrivateRoute";
 import authService from "../services/simpleAuthService";
 
@@ -26,9 +28,16 @@ const configTitleStyle = {
   color: '#333'
 };
 
-export default function AppRoutes() {
+function AppContent() {
+  const location = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
@@ -48,9 +57,18 @@ export default function AppRoutes() {
             </div>
           } />
         </Route>
-        {/* Rota para páginas não encontradas */}
-        <Route path="*" element={<NotFoundPage/>} />
+        <Route path="*" element={<NotFoundPage openModal={openModal} />} />
       </Routes>
+      {!isAdminRoute && <WhatsAppButton />}
+      {isModalOpen && <SchedulingModal closeModal={closeModal} />}
+    </>
+  );
+}
+
+export default function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
